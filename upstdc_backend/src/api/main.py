@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -92,7 +93,7 @@ def create_app() -> FastAPI:
         from src.api.db.mongo import mongo_reachability
         status = await mongo_reachability()
         code = 200 if status.get("ok") else 503
-        return FastAPI.responses.JSONResponse(status_code=code, content=status)
+        return JSONResponse(status_code=code, content=status)
 
     @app.get("/api/v1/docs/websocket-usage", tags=["Misc"], summary="WebSocket Usage")
     def websocket_usage():
