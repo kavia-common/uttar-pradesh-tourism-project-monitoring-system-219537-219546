@@ -89,5 +89,7 @@ def create_app() -> FastAPI:
     return app
 
 
-# Module-level ASGI app instance for servers like uvicorn/gunicorn
-app = create_app()
+# PUBLIC_INTERFACE
+def get_app() -> FastAPI:
+    """ASGI application factory accessor; prevents import-time side effects by creating the app on demand."""
+    return create_app()
