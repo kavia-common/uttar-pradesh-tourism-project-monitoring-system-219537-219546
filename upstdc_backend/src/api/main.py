@@ -110,6 +110,10 @@ def get_app() -> FastAPI:
     return create_app()
 
 
-# Expose a module-level ASGI app for uvicorn 'src.api.main:app'
-# Keep creation lightweight; heavy work should be in startup events.
+# IMPORTANT: Expose a module-level ASGI app for uvicorn 'src.api.main:app'
+# Recommended run command:
+#   uvicorn src.api.main:app --host 0.0.0.0 --port 3001
+# Alternatively, factory mode:
+#   uvicorn src.api.main:get_app --factory --host 0.0.0.0 --port 3001
+# Keep creation lightweight; heavy work executes in startup events.
 app: FastAPI = create_app()
