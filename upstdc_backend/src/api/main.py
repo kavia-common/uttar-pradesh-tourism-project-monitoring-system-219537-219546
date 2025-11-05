@@ -99,3 +99,8 @@ def create_app() -> FastAPI:
 def get_app() -> FastAPI:
     """ASGI application factory accessor; prevents import-time side effects by creating the app on demand."""
     return create_app()
+
+
+# Expose a module-level ASGI app for uvicorn 'src.api.main:app'
+# Keep creation lightweight; heavy work should be in startup events.
+app: FastAPI = create_app()
