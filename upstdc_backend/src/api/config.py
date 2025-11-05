@@ -3,6 +3,9 @@ from typing import List, Optional, Tuple
 from pydantic import Field, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Note: This module is fully Pydantic v2 compliant.
+# Avoid any legacy 'class Config' or BaseSettings.Config usage.
+
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables via pydantic-settings.
@@ -59,12 +62,15 @@ class Settings(BaseSettings):
     HOST: str = Field(default="0.0.0.0", description="Server host binding")
     PORT: int = Field(default=3001, description="Server port")
 
-    # Model config: load .env, allow nested via __, ignore extra env var noise
+    # Pydantic v2 Settings config only (no legacy Config). Adjust flags here if needed.
     model_config = SettingsConfigDict(
         env_file=".env",
         env_nested_delimiter="__",
         extra="ignore",
         case_sensitive=True,
+        # If equivalents were ever needed, set them here (examples):
+        # validate_default=True,  # Pydantic v2 default behavior validates fields
+        # arbitrary_types_allowed=True,  # Only if you have arbitrary types
     )
 
     # PUBLIC_INTERFACE
