@@ -79,6 +79,12 @@ def create_app() -> FastAPI:
         settings_inner = get_settings()
         return {"message": "Healthy", "version": settings_inner.APP_VERSION}
 
+    @app.get("/healthz", tags=["Misc"], summary="Health Check (Probes)")
+    def healthz():
+        """Lightweight health probe endpoint for load balancers and Nginx."""
+        settings_inner = get_settings()
+        return {"status": "ok", "version": settings_inner.APP_VERSION}
+
     @app.get("/api/v1/docs/websocket-usage", tags=["Misc"], summary="WebSocket Usage")
     def websocket_usage():
         """WebSocket usage note placeholder for real-time endpoints (if added in future)."""
