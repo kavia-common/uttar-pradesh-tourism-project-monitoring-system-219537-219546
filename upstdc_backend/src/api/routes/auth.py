@@ -18,7 +18,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Authenticate with email and password to get access and refresh tokens.
     """
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     user = await db.users.find_one({"email": form_data.username})
     if not user or not verify_password(form_data.password, user.get("password_hash", "")):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")

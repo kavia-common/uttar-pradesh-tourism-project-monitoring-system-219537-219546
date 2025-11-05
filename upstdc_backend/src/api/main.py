@@ -80,10 +80,19 @@ def create_app() -> FastAPI:
         return {"message": "Healthy", "version": settings_inner.APP_VERSION}
 
     @app.get("/healthz", tags=["Misc"], summary="Health Check (Probes)")
-    def healthz():
+    async def healthz():
         """Lightweight health probe endpoint for load balancers and Nginx."""
         settings_inner = get_settings()
+        # Do not await DB here; only report version. Always return 200 quickly.
         return {"status": "ok", "version": settings_inner.APP_VERSION}
+
+    @app.get("/api/v1/db/status", tags=["Misc"], summary="DB status (non-blocking)")
+    async def db_status():
+        """Return MongoDB reachability with small timeout; does not block app startup."""
+        from src.api.db.mongo import mongo_reachability
+        status = await mongo_reachability()
+        code = 200 if status.get("ok") else 503
+        return FastAPI.responses.JSONResponse(status_code=code, content=status)
 
     @app.get("/api/v1/docs/websocket-usage", tags=["Misc"], summary="WebSocket Usage")
     def websocket_usage():

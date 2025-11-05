@@ -11,7 +11,11 @@ async def progress_in_bbox(
     max_lon: float = Query(...),
     max_lat: float = Query(...),
 ):
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=503, detail="Database unavailable")
     query = {
         "location": {
             "$geoWithin": {

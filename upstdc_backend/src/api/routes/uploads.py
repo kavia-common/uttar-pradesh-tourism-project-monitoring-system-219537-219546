@@ -27,7 +27,10 @@ async def upload_progress_image(
     key = f"progress/{project_id}/{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{image.filename}"
     public_url = upload_bytes(settings.S3_BUCKET, key, data, image.content_type or "application/octet-stream")
 
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     doc = {
         "project_id": project_id,
         "file_key": key,

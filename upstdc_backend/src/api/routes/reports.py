@@ -22,7 +22,11 @@ def _csv_response(name: str, rows: list[list[str]]):
 
 @router.get("/projects-summary", dependencies=[Depends(rbac_required(required_roles=["admin", "manager"]))])
 async def projects_summary():
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=503, detail="Database unavailable")
     count = await db.projects.count_documents({})
     rows = [["metric", "value"], ["projects_total", str(count)]]
     return _csv_response("projects_summary.csv", rows)

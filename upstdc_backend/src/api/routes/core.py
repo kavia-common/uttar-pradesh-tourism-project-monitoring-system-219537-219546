@@ -21,7 +21,10 @@ async def _ensure_exists(col, _id: str, name: str):
 # Users minimal admin listing for RBAC verification
 @router.get("/users", dependencies=[Depends(rbac_required(required_roles=["admin"]))])
 async def list_users(limit: int = 50, skip: int = 0):
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     users = await db.users.find({}, {"password_hash": 0}).skip(skip).limit(limit).to_list(length=limit)
     for u in users:
         u["_id"] = str(u["_id"])
@@ -31,7 +34,10 @@ async def list_users(limit: int = 50, skip: int = 0):
 # Projects CRUD
 @router.post("/projects", dependencies=[Depends(rbac_required(required_roles=["admin", "manager"]))])
 async def create_project(project: Project):
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     data = project.model_dump()
     data["created_at"] = _now()
     data["updated_at"] = _now()
@@ -42,7 +48,10 @@ async def create_project(project: Project):
 
 @router.get("/projects")
 async def list_projects(limit: int = 50, skip: int = 0):
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     items = await db.projects.find({}).skip(skip).limit(limit).to_list(length=limit)
     for i in items:
         i["_id"] = i.get("code")
@@ -51,7 +60,10 @@ async def list_projects(limit: int = 50, skip: int = 0):
 
 @router.get("/projects/{code}")
 async def get_project(code: str):
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     doc = await db.projects.find_one({"code": code})
     if not doc:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -61,7 +73,10 @@ async def get_project(code: str):
 
 @router.put("/projects/{code}", dependencies=[Depends(rbac_required(required_roles=["admin", "manager"]))])
 async def update_project(code: str, payload: dict):
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     payload["updated_at"] = _now()
     res = await db.projects.update_one({"code": code}, {"$set": payload})
     if res.matched_count == 0:
@@ -73,7 +88,10 @@ async def update_project(code: str, payload: dict):
 
 @router.delete("/projects/{code}", dependencies=[Depends(rbac_required(required_roles=["admin"]))])
 async def delete_project(code: str):
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     res = await db.projects.delete_one({"code": code})
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -88,7 +106,10 @@ ENTITIES = ["tenders", "contractors", "funds", "milestones", "progress", "inspec
 async def create_entity(entity: str, payload: dict):
     if entity not in ENTITIES:
         raise HTTPException(status_code=404, detail="Unknown entity")
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     payload["created_at"] = _now()
     result = await db[entity].insert_one(payload)
     payload["_id"] = str(result.inserted_id)
@@ -99,7 +120,10 @@ async def create_entity(entity: str, payload: dict):
 async def list_entity(entity: str, limit: int = 50, skip: int = 0):
     if entity not in ENTITIES:
         raise HTTPException(status_code=404, detail="Unknown entity")
-    db = get_db()
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     items = await db[entity].find({}).skip(skip).limit(limit).to_list(length=limit)
     for i in items:
         i["_id"] = str(i["_id"])

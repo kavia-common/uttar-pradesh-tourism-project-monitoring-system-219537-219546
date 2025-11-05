@@ -57,8 +57,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Dict[str, Any
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token subject")
-    db = get_db()
-    user = await db.users.find_one({"_id": user_id})
+    try:
+        db = get_db()
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    try:
+        user = await db.users.find_one({"_id": user_id})
+    except Exception:
+        # If DB query fails fast, return 503
+        raise HTTPException(status_code=503, detail="Database unavailable")
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
@@ -82,8 +89,11 @@ def rbac_required(required_roles: Optional[List[str]] = None, required_permissio
                 raise HTTPException(status_code=403, detail="Insufficient role")
 
         if required_permissions:
-            db = get_db()
-            roles_docs = await db.roles.find({"name": {"$in": user_roles}}).to_list(length=100)
+            try:
+                db = get_db()
+                roles_docs = await db.roles.find({"name": {"$in": user_roles}}).to_list(length=100)
+            except Exception:
+                raise HTTPException(status_code=503, detail="Database unavailable")
             permissions = set()
             for r in roles_docs:
                 for p in r.get("permissions", []):
