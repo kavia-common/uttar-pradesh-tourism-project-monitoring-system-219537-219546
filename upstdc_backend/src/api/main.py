@@ -17,7 +17,11 @@ from src.api.routes.reports import router as reports_router
 
 # PUBLIC_INTERFACE
 def create_app() -> FastAPI:
-    """Create and configure FastAPI app with middleware, routers, and lifecycle events."""
+    """Create and configure FastAPI app with middleware, routers, and lifecycle events.
+
+    This function loads Settings inside the factory to avoid import-time evaluation,
+    ensuring environment variables and .env are parsed at runtime.
+    """
     settings = get_settings()
 
     openapi_tags = [
@@ -85,5 +89,5 @@ def create_app() -> FastAPI:
     return app
 
 
-# Create module-level app for ASGI servers, but settings are only loaded within factory
+# Module-level ASGI app instance for servers like uvicorn/gunicorn
 app = create_app()

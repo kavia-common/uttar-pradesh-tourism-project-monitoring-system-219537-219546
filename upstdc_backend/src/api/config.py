@@ -5,32 +5,38 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables via pydantic-settings."""
+    """Application settings loaded from environment variables via pydantic-settings.
 
-    # App
+    All fields below are mapped from environment variables. Unknown variables are ignored.
+    Comma-separated strings are supported for CORS lists. Env file is loaded from .env by default.
+    """
+
+    # App metadata
     APP_NAME: str = "UPSTDC Project Monitoring API"
     APP_VERSION: str = "0.1.0"
     ENV: str = "development"
     SITE_URL: AnyUrl | None = None
 
-    # CORS (comma-separated strings accepted for convenience)
-    CORS_ORIGINS: str = "*"  # comma-separated list or '*'
-    CORS_METHODS: str = "*"  # e.g. "GET,POST,PUT,DELETE,OPTIONS"
-    CORS_HEADERS: str = "*"  # e.g. "Authorization,Content-Type"
+    # CORS (comma-separated strings accepted)
+    CORS_ORIGINS: str = "*"  # e.g. "http://localhost:3000,https://example.com" or "*"
+    CORS_METHODS: str = "*"  # e.g. "GET,POST,PUT,DELETE,OPTIONS" or "*"
+    CORS_HEADERS: str = "*"  # e.g. "Authorization,Content-Type" or "*"
     CORS_CREDENTIALS: bool = True
 
     # Mongo
     MONGODB_URL: str = Field(default="mongodb://localhost:27017", description="MongoDB connection string")
     MONGODB_DB: str = Field(default="upstdc", description="MongoDB database name")
 
-    # JWT
-    JWT_SECRET_KEY: str = Field(default="dev-secret-key-change-me", description="JWT secret key")
+    # JWT (require presence via env, but fall back to dev-safe default to avoid crash in non-prod)
+    JWT_SECRET_KEY: str = Field(
+        default="dev-secret-key-change-me",
+        description="JWT secret key (set to a strong value in production via environment)",
+    )
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
 
-    # Storage
-    # Default to local storage in dev so S3 is optional
+    # Storage (defaults allow running without S3 in dev)
     USE_LOCAL_STORAGE: bool = Field(default=True, description="If true, store uploads on local filesystem")
     UPLOAD_DIR: str = Field(default="uploads", description="Local upload directory when USE_LOCAL_STORAGE=true")
 
@@ -46,20 +52,20 @@ class Settings(BaseSettings):
     S3_BUCKET: str | None = None
     S3_PUBLIC_BASE_URL: str | None = None  # Optional CDN/public URL prefix
 
-    # Rate limit
+    # Rate limiting
     RATE_LIMIT: str = "100/minute"
 
-    # Server settings (ensure 0.0.0.0:3001 by default as requested)
+    # Server settings
     HOST: str = Field(default="0.0.0.0", description="Server host binding")
     PORT: int = Field(default=3001, description="Server port")
 
-    # Accept and ignore unknown environment variables so startup doesn't fail on extras
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", case_sensitive=True)
-
-    # Backward compatibility for older pydantic-settings naming
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    # Model config: load .env, allow nested via __, ignore extra env var noise
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_nested_delimiter="__",
+        extra="ignore",
+        case_sensitive=True,
+    )
 
     # PUBLIC_INTERFACE
     def cors_origins_list(self) -> List[str]:
