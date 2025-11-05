@@ -1,0 +1,4 @@
+{
+    "command": "python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python -m src.api.generate_openapi",
+    "working_directory": "/home/kavia/workspace/code-generation/uttar-pradesh-tourism-project-monitoring-system-219537-219546/upstdc_backend"
+}
