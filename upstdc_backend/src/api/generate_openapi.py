@@ -1,9 +1,10 @@
 import json
 import os
 
-from src.api.main import app
+from src.api.main import create_app
 
-# Generate OpenAPI schema
+# Generate OpenAPI schema using app factory to avoid early imports
+app = create_app()
 openapi_schema = app.openapi()
 
 # Write to interfaces/openapi.json

@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from pydantic import Field, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -30,7 +30,8 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
 
     # Storage
-    USE_LOCAL_STORAGE: bool = Field(default=False, description="If true, store uploads on local filesystem")
+    # Default to local storage in dev so S3 is optional
+    USE_LOCAL_STORAGE: bool = Field(default=True, description="If true, store uploads on local filesystem")
     UPLOAD_DIR: str = Field(default="uploads", description="Local upload directory when USE_LOCAL_STORAGE=true")
 
     # URLs for frontend/backend
@@ -48,9 +49,9 @@ class Settings(BaseSettings):
     # Rate limit
     RATE_LIMIT: str = "100/minute"
 
-    # Server settings
+    # Server settings (ensure 0.0.0.0:3001 by default as requested)
     HOST: str = Field(default="0.0.0.0", description="Server host binding")
-    PORT: int = Field(default=8000, description="Server port")
+    PORT: int = Field(default=3001, description="Server port")
 
     # Accept and ignore unknown environment variables so startup doesn't fail on extras
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", case_sensitive=True)
@@ -63,29 +64,42 @@ class Settings(BaseSettings):
     # PUBLIC_INTERFACE
     def cors_origins_list(self) -> List[str]:
         """Return parsed CORS origins list from the CORS_ORIGINS string, handling '*' as wildcard."""
-        if not self.CORS_ORIGINS:
+        value = (self.CORS_ORIGINS or "").strip()
+        if value == "":
             return []
-        if self.CORS_ORIGINS.strip() == "*":
+        if value == "*":
             return ["*"]
-        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        return [o.strip() for o in value.split(",") if o.strip()]
 
     # PUBLIC_INTERFACE
     def cors_methods_list(self) -> List[str]:
         """Return parsed CORS methods list from CORS_METHODS, handling '*' as wildcard."""
-        if not self.CORS_METHODS:
+        value = (self.CORS_METHODS or "").strip()
+        if value == "":
             return []
-        if self.CORS_METHODS.strip() == "*":
+        if value == "*":
             return ["*"]
-        return [m.strip().upper() for m in self.CORS_METHODS.split(",") if m.strip()]
+        return [m.strip().upper() for m in value.split(",") if m.strip()]
 
     # PUBLIC_INTERFACE
     def cors_headers_list(self) -> List[str]:
         """Return parsed CORS headers list from CORS_HEADERS, handling '*' as wildcard."""
-        if not self.CORS_HEADERS:
+        value = (self.CORS_HEADERS or "").strip()
+        if value == "":
             return []
-        if self.CORS_HEADERS.strip() == "*":
+        if value == "*":
             return ["*"]
-        return [h.strip() for h in self.CORS_HEADERS.split(",") if h.strip()]
+        return [h.strip() for h in value.split(",") if h.strip()]
+
+    # PUBLIC_INTERFACE
+    def get_uvicorn_config(self) -> Tuple[str, int]:
+        """Return (host, port) tuple for uvicorn from settings with safe defaults."""
+        host = self.HOST or "0.0.0.0"
+        try:
+            port = int(self.PORT) if self.PORT else 3001
+        except Exception:
+            port = 3001
+        return host, port
 
 
 # PUBLIC_INTERFACE
