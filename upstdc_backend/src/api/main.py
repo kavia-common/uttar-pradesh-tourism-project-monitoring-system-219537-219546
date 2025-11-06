@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -14,6 +14,7 @@ from src.api.routes.core import router as core_router
 from src.api.routes.uploads import router as uploads_router
 from src.api.routes.geo import router as geo_router
 from src.api.routes.reports import router as reports_router
+from src.api.schemas import Project
 
 
 # PUBLIC_INTERFACE
@@ -71,30 +72,101 @@ def create_app() -> FastAPI:
     legacy_api = APIRouter(prefix="/api", tags=["Core Entities"])
 
     # Reuse handler functions by importing from core router module
-    from src.api.routes.core import create_project as _create_project, list_projects as _list_projects, get_project as _get_project, update_project as _update_project, delete_project as _delete_project
+    from src.api.routes.core import (
+        create_project as _create_project,
+        list_projects as _list_projects,
+        get_project as _get_project,
+        update_project as _update_project,
+        delete_project as _delete_project,
+    )
 
-    @legacy_api.post("/projects", summary="Create Project (legacy path)")
-    async def legacy_create_project(project=FastAPI):  # type: ignore[assignment]
-        # Delegate to the actual handler
-        return await _create_project(project)  # type: ignore[misc]
+    # PUBLIC_INTERFACE
+    @legacy_api.post(
+        "/projects",
+        summary="Create Project (legacy path)",
+        responses={200: {"description": "Successful Response"}},
+    )
+    async def legacy_create_project(project: Project):
+        """Compatibility endpoint mapping to /api/v1/core/projects (POST)."""
+        return await _create_project(project)
 
-    @legacy_api.get("/projects", summary="List Projects (legacy path)")
+    # PUBLIC_INTERFACE
+    @legacy_api.get(
+        "/projects",
+        summary="List Projects (legacy path)",
+        responses={200: {"description": "Successful Response"}},
+    )
     async def legacy_list_projects(limit: int = 50, skip: int = 0):
-        return await _list_projects(limit=limit, skip=skip)  # type: ignore[misc]
+        """Compatibility endpoint mapping to /api/v1/core/projects (GET)."""
+        return await _list_projects(limit=limit, skip=skip)
 
-    @legacy_api.get("/projects/{code}", summary="Get Project (legacy path)")
+    # PUBLIC_INTERFACE
+    @legacy_api.get(
+        "/projects/{code}",
+        summary="Get Project (legacy path)",
+        responses={200: {"description": "Successful Response"}},
+    )
     async def legacy_get_project(code: str):
-        return await _get_project(code)  # type: ignore[misc]
+        """Compatibility endpoint mapping to /api/v1/core/projects/{code} (GET)."""
+        return await _get_project(code)
 
-    @legacy_api.put("/projects/{code}", summary="Update Project (legacy path)")
-    async def legacy_update_project(code: str, payload: dict):
-        return await _update_project(code, payload)  # type: ignore[misc]
+    # PUBLIC_INTERFACE
+    @legacy_api.put(
+        "/projects/{code}",
+        summary="Update Project (legacy path)",
+        responses={200: {"description": "Successful Response"}},
+    )
+    async def legacy_update_project(code: str, payload: dict = Body(...)):
+        """Compatibility endpoint mapping to /api/v1/core/projects/{code} (PUT)."""
+        return await _update_project(code, payload)
 
-    @legacy_api.delete("/projects/{code}", summary="Delete Project (legacy path)")
+    # PUBLIC_INTERFACE
+    @legacy_api.delete(
+        "/projects/{code}",
+        summary="Delete Project (legacy path)",
+        responses={200: {"description": "Successful Response"}},
+    )
     async def legacy_delete_project(code: str):
-        return await _delete_project(code)  # type: ignore[misc]
+        """Compatibility endpoint mapping to /api/v1/core/projects/{code} (DELETE)."""
+        return await _delete_project(code)
 
+    # Also accept completely unversioned legacy path '/projects' if some frontends bypass '/api' prefix.
+    # This router is intentionally minimal and forwards to same handlers.
+    bare_legacy_api = APIRouter(prefix="", tags=["Core Entities"])
+
+    # PUBLIC_INTERFACE
+    @bare_legacy_api.post("/projects", summary="Create Project (bare legacy path)")
+    async def bare_legacy_create_project(project: Project):
+        """Compatibility endpoint mapping to /api/v1/core/projects (POST) for bare path."""
+        return await _create_project(project)
+
+    # PUBLIC_INTERFACE
+    @bare_legacy_api.get("/projects", summary="List Projects (bare legacy path)")
+    async def bare_legacy_list_projects(limit: int = 50, skip: int = 0):
+        """Compatibility endpoint mapping to /api/v1/core/projects (GET) for bare path."""
+        return await _list_projects(limit=limit, skip=skip)
+
+    # PUBLIC_INTERFACE
+    @bare_legacy_api.get("/projects/{code}", summary="Get Project (bare legacy path)")
+    async def bare_legacy_get_project(code: str):
+        """Compatibility endpoint mapping to /api/v1/core/projects/{code} (GET) for bare path."""
+        return await _get_project(code)
+
+    # PUBLIC_INTERFACE
+    @bare_legacy_api.put("/projects/{code}", summary="Update Project (bare legacy path)")
+    async def bare_legacy_update_project(code: str, payload: dict = Body(...)):
+        """Compatibility endpoint mapping to /api/v1/core/projects/{code} (PUT) for bare path."""
+        return await _update_project(code, payload)
+
+    # PUBLIC_INTERFACE
+    @bare_legacy_api.delete("/projects/{code}", summary="Delete Project (bare legacy path)")
+    async def bare_legacy_delete_project(code: str):
+        """Compatibility endpoint mapping to /api/v1/core/projects/{code} (DELETE) for bare path."""
+        return await _delete_project(code)
+
+    # Include legacy routers
     app.include_router(legacy_api)
+    app.include_router(bare_legacy_api)
 
     @app.on_event("startup")
     async def on_startup():
