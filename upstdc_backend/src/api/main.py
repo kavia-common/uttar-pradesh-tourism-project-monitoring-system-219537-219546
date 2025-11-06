@@ -170,6 +170,15 @@ def create_app() -> FastAPI:
     app.include_router(legacy_api)
     app.include_router(bare_legacy_api)
 
+    # Legacy shim for reports under /api/reports to support older frontends
+    from fastapi import APIRouter as _APIRouter
+    from src.api.routes.reports import router as reports_v1_router
+
+    reports_legacy_api = _APIRouter(prefix="/api", tags=["Reports"])
+    # Mount the same router paths but preserve /reports prefix under /api
+    reports_legacy_api.include_router(reports_v1_router, prefix="")  # keeps /reports endpoints
+    app.include_router(reports_legacy_api)
+
     @app.on_event("startup")
     async def on_startup():
         await init_app_state(app)
