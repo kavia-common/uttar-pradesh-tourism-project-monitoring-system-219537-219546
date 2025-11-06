@@ -66,6 +66,36 @@ def create_app() -> FastAPI:
     api.include_router(reports_router)
     app.include_router(api)
 
+    # Backward-compatibility shims for older frontend paths without version/core prefixes.
+    # These forward to the same logic as core routes to prevent 404s when frontend calls /api/projects.
+    legacy_api = APIRouter(prefix="/api", tags=["Core Entities"])
+
+    # Reuse handler functions by importing from core router module
+    from src.api.routes.core import create_project as _create_project, list_projects as _list_projects, get_project as _get_project, update_project as _update_project, delete_project as _delete_project
+
+    @legacy_api.post("/projects", summary="Create Project (legacy path)")
+    async def legacy_create_project(project=FastAPI):  # type: ignore[assignment]
+        # Delegate to the actual handler
+        return await _create_project(project)  # type: ignore[misc]
+
+    @legacy_api.get("/projects", summary="List Projects (legacy path)")
+    async def legacy_list_projects(limit: int = 50, skip: int = 0):
+        return await _list_projects(limit=limit, skip=skip)  # type: ignore[misc]
+
+    @legacy_api.get("/projects/{code}", summary="Get Project (legacy path)")
+    async def legacy_get_project(code: str):
+        return await _get_project(code)  # type: ignore[misc]
+
+    @legacy_api.put("/projects/{code}", summary="Update Project (legacy path)")
+    async def legacy_update_project(code: str, payload: dict):
+        return await _update_project(code, payload)  # type: ignore[misc]
+
+    @legacy_api.delete("/projects/{code}", summary="Delete Project (legacy path)")
+    async def legacy_delete_project(code: str):
+        return await _delete_project(code)  # type: ignore[misc]
+
+    app.include_router(legacy_api)
+
     @app.on_event("startup")
     async def on_startup():
         await init_app_state(app)
@@ -97,9 +127,16 @@ def create_app() -> FastAPI:
 
     @app.get("/api/v1/docs/websocket-usage", tags=["Misc"], summary="WebSocket Usage")
     def websocket_usage():
-        """WebSocket usage note placeholder for real-time endpoints (if added in future)."""
+        """WebSocket usage note placeholder for real-time endpoints (if added in future).
+
+        Also note: REST base path for project APIs is /api/v1/core/projects.
+        Legacy shims are temporarily available at /api/projects to ease migration, but
+        new frontend code should prefer the versioned path.
+        """
         return {
-            "note": "No active WebSocket endpoints. Future real-time updates will be documented here."
+            "note": "No active WebSocket endpoints. Future real-time updates will be documented here.",
+            "rest_project_base": "/api/v1/core/projects",
+            "legacy_project_base": "/api/projects",
         }
 
     return app
