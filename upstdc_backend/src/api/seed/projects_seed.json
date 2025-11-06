@@ -1,0 +1,92 @@
+[
+  {
+    "code": "UPT-AGRA-001",
+    "name": "Agra Fort Visitor Center Upgrade",
+    "description": "Upgrade facilities and signage for Agra Fort visitors.",
+    "status": "In Progress",
+    "budget_inr": 25000000,
+    "district": "Agra",
+    "location": { "type": "Point", "coordinates": [78.018, 27.179] }
+  },
+  {
+    "code": "UPT-LKO-002",
+    "name": "Lucknow Heritage Walk Trail",
+    "description": "Create guided heritage walk with kiosks and lighting.",
+    "status": "Planned",
+    "budget_inr": 15000000,
+    "district": "Lucknow",
+    "location": { "type": "Point", "coordinates": [80.946, 26.846] }
+  },
+  {
+    "code": "UPT-VNS-003",
+    "name": "Varanasi Ghat Beautification",
+    "description": "Beautification and amenities along Dashashwamedh Ghat.",
+    "status": "In Progress",
+    "budget_inr": 40000000,
+    "district": "Varanasi",
+    "location": { "type": "Point", "coordinates": [83.009, 25.284] }
+  },
+  {
+    "code": "UPT-PRYJ-004",
+    "name": "Prayagraj Sangam Tourist Info Hub",
+    "description": "Smart info hub with AR displays at Sangam area.",
+    "status": "Completed",
+    "budget_inr": 12000000,
+    "district": "Prayagraj",
+    "location": { "type": "Point", "coordinates": [81.846, 25.435] }
+  },
+  {
+    "code": "UPT-MTH-005",
+    "name": "Mathura Vrindavan Pilgrim Amenities",
+    "description": "Shelters, water points, and sanitation near temples.",
+    "status": "In Progress",
+    "budget_inr": 22000000,
+    "district": "Mathura",
+    "location": { "type": "Point", "coordinates": [77.673, 27.492] }
+  },
+  {
+    "code": "UPT-JHS-006",
+    "name": "Jhansi Fort Sound & Light Show",
+    "description": "Evening sound and light show with narration.",
+    "status": "Planned",
+    "budget_inr": 18000000,
+    "district": "Jhansi",
+    "location": { "type": "Point", "coordinates": [78.568, 25.458] }
+  },
+  {
+    "code": "UPT-CKN-007",
+    "name": "Chitrakoot Eco-Trail Development",
+    "description": "Eco-friendly trails, signage, and viewpoints.",
+    "status": "In Progress",
+    "budget_inr": 9000000,
+    "district": "Chitrakoot",
+    "location": { "type": "Point", "coordinates": [80.854, 25.201] }
+  },
+  {
+    "code": "UPT-AYD-008",
+    "name": "Ayodhya Riverfront Amenities",
+    "description": "Riverfront seating, illumination, and landscaping.",
+    "status": "Completed",
+    "budget_inr": 30000000,
+    "district": "Ayodhya",
+    "location": { "type": "Point", "coordinates": [82.194, 26.799] }
+  },
+  {
+    "code": "UPT-BRB-009",
+    "name": "Bareilly Craft Tourism Center",
+    "description": "Exhibition and training space for zardozi craft.",
+    "status": "Planned",
+    "budget_inr": 8000000,
+    "district": "Bareilly",
+    "location": { "type": "Point", "coordinates": [79.430, 28.367] }
+  },
+  {
+    "code": "UPT-MZN-010",
+    "name": "Muzaffarnagar Agro-Tourism Park",
+    "description": "Agro-based experiences and farm stays hub.",
+    "status": "In Progress",
+    "budget_inr": 16000000,
+    "district": "Muzaffarnagar",
+    "location": { "type": "Point", "coordinates": [77.704, 29.473] }
+  }
+]

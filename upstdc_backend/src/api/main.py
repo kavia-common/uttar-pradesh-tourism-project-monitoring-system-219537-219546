@@ -15,6 +15,7 @@ from src.api.routes.uploads import router as uploads_router
 from src.api.routes.geo import router as geo_router
 from src.api.routes.reports import router as reports_router
 from src.api.schemas import Project
+from src.api.seed.utils import router as seed_router, seed_projects_on_startup
 
 
 # PUBLIC_INTERFACE
@@ -65,6 +66,7 @@ def create_app() -> FastAPI:
     api.include_router(uploads_router)
     api.include_router(geo_router)
     api.include_router(reports_router)
+    api.include_router(seed_router)  # lightweight seed endpoints for demo content
     app.include_router(api)
 
     # Backward-compatibility shims for older frontend paths without version/core prefixes.
@@ -171,6 +173,11 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     async def on_startup():
         await init_app_state(app)
+        # Best-effort seed of demo projects; does not fail startup if DB unavailable
+        try:
+            await seed_projects_on_startup()
+        except Exception:
+            pass
 
     @app.on_event("shutdown")
     async def on_shutdown():
